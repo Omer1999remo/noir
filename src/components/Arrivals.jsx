@@ -17,6 +17,7 @@ export default function Arrivals() {
 
     async function loadProducts() {
         const data = await getProducts()
+        console.log('Loaded products:', data)
         setProducts(data)
     }
 
