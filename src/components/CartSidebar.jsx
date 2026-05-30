@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { X, Trash2, Plus, Minus } from 'lucide-react'
 import { useCart } from '../hooks/useCart'
 
@@ -41,16 +42,24 @@ export default function CartSidebar({ isOpen, onClose }) {
                     ) : (
                         <div className="space-y-6">
                             {cart.map(item => (
-                                <div key={item.id} className="flex gap-4 py-4 border-b border-silver/10">
-                                    <img src={item.image} className="w-20 h-24 object-cover bg-noir" />
+                                <div key={item.id + (item.selectedSize || '')} className="flex gap-4 py-4 border-b border-silver/10">
+                                    <Link to={`/product/${item.slug}`} onClick={onClose}>
+                                        <img src={item.image} alt={item.name} className="w-20 h-24 object-cover bg-noir" />
+                                    </Link>
                                     <div className="flex-1">
-                                        <h4 className="font-display font-bold mb-1">{item.name}</h4>
-                                        <p className="text-silver text-xs mb-3">{item.category}</p>
+                                        <Link to={`/product/${item.slug}`} onClick={onClose}>
+                                            <h4 className="font-display font-bold mb-1 hover:text-electric transition-colors">{item.name}</h4>
+                                        </Link>
+                                        <p className="text-silver text-xs mb-1">{item.category}</p>
+                                        {item.selectedSize && (
+                                            <p className="text-silver text-xs mb-3">Size: {item.selectedSize}</p>
+                                        )}
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3 border border-silver/20">
                                                 <button
                                                     onClick={() => updateQuantity(item.id, -1)}
                                                     className="px-3 py-1 hover:bg-silver/10 transition-colors text-sm"
+                                                    data-cursor="hover"
                                                 >
                                                     <Minus className="w-3 h-3" />
                                                 </button>
@@ -58,6 +67,7 @@ export default function CartSidebar({ isOpen, onClose }) {
                                                 <button
                                                     onClick={() => updateQuantity(item.id, 1)}
                                                     className="px-3 py-1 hover:bg-silver/10 transition-colors text-sm"
+                                                    data-cursor="hover"
                                                 >
                                                     <Plus className="w-3 h-3" />
                                                 </button>
@@ -90,9 +100,14 @@ export default function CartSidebar({ isOpen, onClose }) {
                             <span>TOTAL</span>
                             <span>${cartTotal.toFixed(2)}</span>
                         </div>
-                        <button className="btn-primary w-full mb-3" data-cursor="hover">
+                        <Link
+                            to="/checkout"
+                            onClick={onClose}
+                            className="btn-primary w-full mb-3 block text-center"
+                            data-cursor="hover"
+                        >
                             Checkout
-                        </button>
+                        </Link>
                         <button
                             onClick={onClose}
                             className="w-full text-silver text-sm hover:text-cream transition-colors"

@@ -1,24 +1,34 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { Search, X, ArrowUpRight } from 'lucide-react'
-import { products } from '../data/products'
+import { getProducts } from '../lib/supabase'
 
 const trendingSearches = [
-    'Oversized Blazers',
-    'Cargo Pants',
-    'Tech Wear',
-    'Limited Edition'
+    'Blazer',
+    'Trench',
+    'Cargo',
+    'Limited'
 ]
 
 export default function SearchOverlay({ isOpen, onClose, onQuickView }) {
     const [query, setQuery] = useState('')
     const [results, setResults] = useState([])
+    const [allProducts, setAllProducts] = useState([])
     const inputRef = useRef(null)
 
     useEffect(() => {
         if (isOpen && inputRef.current) {
             setTimeout(() => inputRef.current.focus(), 300)
         }
+        if (isOpen && allProducts.length === 0) {
+            loadProducts()
+        }
     }, [isOpen])
+
+    async function loadProducts() {
+        const products = await getProducts()
+        setAllProducts(products)
+    }
 
     useEffect(() => {
         if (!query.trim()) {
@@ -26,12 +36,12 @@ export default function SearchOverlay({ isOpen, onClose, onQuickView }) {
             return
         }
 
-        const filtered = products.filter(p =>
+        const filtered = allProducts.filter(p =>
             p.name.toLowerCase().includes(query.toLowerCase()) ||
             p.category.toLowerCase().includes(query.toLowerCase())
         )
         setResults(filtered)
-    }, [query])
+    }, [query, allProducts])
 
     const quickSearch = (term) => {
         setQuery(term)
@@ -66,12 +76,13 @@ export default function SearchOverlay({ isOpen, onClose, onQuickView }) {
                             {results.length} Results
                         </p>
                         {results.map(product => (
-                            <div
+                            <Link
                                 key={product.id}
-                                onClick={() => onQuickView(product)}
+                                to={`/product/${product.slug}`}
+                                onClick={onClose}
                                 className="flex gap-4 p-4 border border-silver/10 hover:border-electric transition-colors cursor-pointer group"
                             >
-                                <img src={product.image} className="w-24 h-24 object-cover grayscale group-hover:grayscale-0 transition-all" />
+                                <img src={product.image} alt={product.name} className="w-24 h-24 object-cover grayscale group-hover:grayscale-0 transition-all" />
                                 <div className="flex-1">
                                     <h4 className="font-display font-bold mb-1 group-hover:text-electric transition-colors">
                                         {product.name}
@@ -80,7 +91,7 @@ export default function SearchOverlay({ isOpen, onClose, onQuickView }) {
                                     <p className="text-electric font-bold">${product.price}</p>
                                 </div>
                                 <ArrowUpRight className="w-5 h-5 text-silver/30 group-hover:text-electric transition-colors" />
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 ) : query ? (

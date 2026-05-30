@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Cursor from './components/Cursor'
 import Navigation from './components/Navigation'
 import Hero from './components/Hero'
@@ -12,19 +13,44 @@ import Footer from './components/Footer'
 import SearchOverlay from './components/SearchOverlay'
 import CartSidebar from './components/CartSidebar'
 import QuickViewModal from './components/QuickViewModal'
+import MobileMenu from './components/MobileMenu'
 import { CartProvider } from './hooks/useCart'
+import { WishlistProvider } from './hooks/useWishlist'
+
+// Pages
+import ShopPage from './pages/ShopPage'
+import ProductPage from './pages/ProductPage'
+import AboutPage from './pages/AboutPage'
+import CheckoutPage from './pages/CheckoutPage'
+import WishlistPage from './pages/WishlistPage'
+import OrderConfirmationPage from './pages/OrderConfirmationPage'
+
+function HomePage() {
+  return (
+    <>
+      <Hero />
+      <Marquee />
+      <Categories />
+      <Arrivals />
+      <Spotlight />
+      <Stats />
+      <Newsletter />
+    </>
+  )
+}
 
 function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [quickViewProduct, setQuickViewProduct] = useState(null)
 
-  // Close on ESC
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape') {
         setIsSearchOpen(false)
         setIsCartOpen(false)
+        setIsMobileMenuOpen(false)
         setQuickViewProduct(null)
       }
     }
@@ -32,54 +58,72 @@ function App() {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
 
+  useEffect(() => {
+    if (isSearchOpen || isCartOpen || isMobileMenuOpen || quickViewProduct) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  }, [isSearchOpen, isCartOpen, isMobileMenuOpen, quickViewProduct])
+
   return (
     <CartProvider>
-      <div className="relative">
-        {/* Noise texture */}
-        <div className="noise" />
+      <WishlistProvider>
+        <BrowserRouter>
+          <div className="relative">
+            <div className="noise" />
+            <Cursor />
 
-        {/* Custom cursor */}
-        <Cursor />
+            <Navigation
+              onSearchOpen={() => setIsSearchOpen(true)}
+              onCartOpen={() => setIsCartOpen(true)}
+              onMobileMenuOpen={() => setIsMobileMenuOpen(true)}
+            />
 
-        {/* Navigation */}
-        <Navigation
-          onSearchOpen={() => setIsSearchOpen(true)}
-          onCartOpen={() => setIsCartOpen(true)}
-        />
+            <main>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/product/:slug" element={<ProductPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/wishlist" element={<WishlistPage />} />
+                <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+              </Routes>
+            </main>
 
-        {/* Main content */}
-        <main>
-          <Hero />
-          <Marquee />
-          <Categories />
-          <Arrivals onQuickView={setQuickViewProduct} />
-          <Spotlight onQuickView={setQuickViewProduct} />
-          <Stats />
-          <Newsletter />
-        </main>
+            <Footer />
 
-        <Footer />
+            <MobileMenu
+              isOpen={isMobileMenuOpen}
+              onClose={() => setIsMobileMenuOpen(false)}
+              onCartOpen={() => {
+                setIsMobileMenuOpen(false)
+                setIsCartOpen(true)
+              }}
+            />
 
-        {/* Overlays */}
-        <SearchOverlay
-          isOpen={isSearchOpen}
-          onClose={() => setIsSearchOpen(false)}
-          onQuickView={(product) => {
-            setQuickViewProduct(product)
-            setIsSearchOpen(false)
-          }}
-        />
+            <SearchOverlay
+              isOpen={isSearchOpen}
+              onClose={() => setIsSearchOpen(false)}
+              onQuickView={(product) => {
+                setQuickViewProduct(product)
+                setIsSearchOpen(false)
+              }}
+            />
 
-        <CartSidebar
-          isOpen={isCartOpen}
-          onClose={() => setIsCartOpen(false)}
-        />
+            <CartSidebar
+              isOpen={isCartOpen}
+              onClose={() => setIsCartOpen(false)}
+            />
 
-        <QuickViewModal
-          product={quickViewProduct}
-          onClose={() => setQuickViewProduct(null)}
-        />
-      </div>
+            <QuickViewModal
+              product={quickViewProduct}
+              onClose={() => setQuickViewProduct(null)}
+            />
+          </div>
+        </BrowserRouter>
+      </WishlistProvider>
     </CartProvider>
   )
 }

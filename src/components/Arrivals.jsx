@@ -1,13 +1,24 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { Plus, ArrowLeft, ArrowRight } from 'lucide-react'
-import { products } from '../data/products'
+import { getProducts } from '../lib/supabase'
 import { useCart } from '../hooks/useCart'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 
-export default function Arrivals({ onQuickView }) {
+export default function Arrivals() {
     const { addToCart } = useCart()
+    const [products, setProducts] = useState([])
     const scrollRef = useRef(null)
     const headerRef = useScrollReveal()
+
+    useEffect(() => {
+        loadProducts()
+    }, [])
+
+    async function loadProducts() {
+        const data = await getProducts()
+        setProducts(data)
+    }
 
     const scroll = (direction) => {
         if (scrollRef.current) {
@@ -53,11 +64,13 @@ export default function Arrivals({ onQuickView }) {
                         data-cursor="hover"
                     >
                         <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-noir">
-                            <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
-                            />
+                            <Link to={`/product/${product.slug}`}>
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
+                                />
+                            </Link>
                             {product.tag && (
                                 <span className="absolute top-4 left-4 bg-electric text-noir text-xs font-bold px-3 py-1 tracking-widest">
                                     {product.tag}
@@ -74,9 +87,11 @@ export default function Arrivals({ onQuickView }) {
                             </button>
                         </div>
 
-                        <h3 className="font-display text-xl font-bold mb-1 group-hover:text-electric transition-colors">
-                            {product.name}
-                        </h3>
+                        <Link to={`/product/${product.slug}`}>
+                            <h3 className="font-display text-xl font-bold mb-1 group-hover:text-electric transition-colors">
+                                {product.name}
+                            </h3>
+                        </Link>
                         <p className="text-silver text-sm mb-2">{product.category}</p>
                         <p className="text-electric font-bold">${product.price}</p>
                     </div>

@@ -1,12 +1,16 @@
+import { useState } from 'react'
 import { X, Heart } from 'lucide-react'
 import { useCart } from '../hooks/useCart'
-
-const sizes = ['XS', 'S', 'M', 'L', 'XL']
+import { useWishlist } from '../hooks/useWishlist'
 
 export default function QuickViewModal({ product, onClose }) {
     const { addToCart } = useCart()
+    const { toggleWishlist, isInWishlist } = useWishlist()
+    const [selectedSize, setSelectedSize] = useState(null)
 
     if (!product) return null
+
+    const sizes = product.sizes || ['XS', 'S', 'M', 'L', 'XL']
 
     return (
         <div
@@ -44,11 +48,16 @@ export default function QuickViewModal({ product, onClose }) {
 
                         <div className="mb-8">
                             <label className="text-xs tracking-widest text-silver mb-3 block">SIZE</label>
-                            <div className="flex gap-3">
+                            <div className="flex flex-wrap gap-3">
                                 {sizes.map(size => (
                                     <button
                                         key={size}
-                                        className="w-12 h-12 border border-silver/20 hover:border-electric hover:text-electric transition-colors font-display text-sm"
+                                        onClick={() => setSelectedSize(size)}
+                                        className={`min-w-[48px] h-12 px-4 border transition-colors font-display text-sm ${
+                                            selectedSize === size
+                                                ? 'border-electric text-electric'
+                                                : 'border-silver/20 hover:border-electric'
+                                        }`}
                                         data-cursor="hover"
                                     >
                                         {size}
@@ -60,7 +69,7 @@ export default function QuickViewModal({ product, onClose }) {
                         <div className="flex gap-4">
                             <button
                                 onClick={() => {
-                                    addToCart(product)
+                                    addToCart({ ...product, selectedSize: selectedSize || sizes[0] })
                                     onClose()
                                 }}
                                 className="btn-primary flex-1"
@@ -69,10 +78,11 @@ export default function QuickViewModal({ product, onClose }) {
                                 Add to Cart
                             </button>
                             <button
-                                className="btn-outline px-4"
+                                onClick={() => toggleWishlist(product)}
+                                className={`btn-outline px-4 ${isInWishlist(product.id) ? 'border-electric text-electric' : ''}`}
                                 data-cursor="hover"
                             >
-                                <Heart className="w-5 h-5" />
+                                <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
                             </button>
                         </div>
                     </div>
